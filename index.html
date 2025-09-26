@@ -1,0 +1,1271 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Personal Dashboard</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/TextPlugin.min.js"></script>
+    <style>
+        /* Reduced motion preferences - FAST LOADING */
+        @media (prefers-reduced-motion: reduce) {
+            * {
+                animation-duration: 0.01ms !important;
+                transition-duration: 0.01ms !important;
+            }
+        }
+
+        /* Faster animations globally */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            animation-duration: 0.2s; /* Reduced from longer durations */
+            transition-duration: 0.15s; /* Faster transitions */
+        }
+
+        body {
+            font-family: 'JetBrains Mono', 'Fira Code', 'SF Mono', Monaco, 'Cascadia Code', monospace;
+            background: #0d1117;
+            /* Simplified background - removed heavy gradients */
+            background-image: radial-gradient(circle at 20% 80%, rgba(120, 119, 198, 0.02) 0%, transparent 50%);
+            height: 100vh;
+            padding: 1rem;
+            color: #c9d1d9;
+            line-height: 1.4;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* Removed heavy pseudo-element background */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent 79px, rgba(0, 255, 0, 0.01) 81px, transparent 82px);
+            background-size: 82px 4px;
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        .container {
+            max-width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .header {
+            padding: 1rem;
+            background: #161b22;
+            border: 1px solid #30363d;
+            border-left: 3px solid #58a6ff;
+            margin-bottom: 1rem;
+            flex-shrink: 0;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header h1 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #58a6ff;
+            display: inline-block;
+            text-shadow: 0 0 10px rgba(88, 166, 255, 0.3);
+            cursor: pointer;
+            will-change: contents;
+        }
+
+        /* Scrambled text styles */
+        .scrambled-header {
+            position: relative;
+            display: inline-block;
+        }
+
+        .char {
+            display: inline-block;
+            will-change: contents;
+            transition: none;
+        }
+
+        .header::before {
+            content: "root@localhost:~$ ";
+            color: #7c3aed;
+            font-weight: bold;
+            margin-right: 0.5rem;
+        }
+
+        .controls {
+            background: #161b22;
+            border: 1px solid #30363d;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            flex-shrink: 0;
+            position: relative;
+        }
+
+        .controls::before {
+            content: '// Input commands here';
+            position: absolute;
+            top: -10px;
+            left: 10px;
+            background: #0d1117;
+            padding: 0 0.5rem;
+            color: #7d8590;
+            font-size: 0.7rem;
+            font-style: italic;
+        }
+
+        .input-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr auto auto auto;
+            gap: 0.5rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .input-field, .select-field {
+            padding: 0.5rem;
+            border: 1px solid #30363d;
+            font-size: 0.8rem;
+            font-family: inherit;
+            background: #0d1117;
+            color: #c9d1d9;
+            transition: all 0.1s ease; /* Faster transition */
+            position: relative;
+        }
+
+        .input-field:focus, .select-field:focus {
+            outline: none;
+            border-color: #58a6ff;
+            box-shadow: 0 0 0 2px rgba(88, 166, 255, 0.1);
+            background: #161b22;
+        }
+
+        .input-field::placeholder {
+            color: #7d8590;
+        }
+
+        .select-field option {
+            background: #161b22;
+            color: #c9d1d9;
+        }
+
+        .add-btn {
+            background: linear-gradient(135deg, #238636, #2ea043);
+            color: #ffffff;
+            border: 1px solid #2ea043;
+            padding: 0.5rem 0.8rem;
+            cursor: pointer;
+            font-size: 0.8rem;
+            font-weight: 600;
+            font-family: inherit;
+            transition: all 0.1s ease; /* Faster transition */
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Simplified button hover - removed heavy animations */
+        .add-btn:hover {
+            background: linear-gradient(135deg, #2ea043, #3fb950);
+            transform: translateY(-1px);
+        }
+
+        .progress-input {
+            width: 60px;
+        }
+
+        .search-box {
+            width: 100%;
+            padding: 0.5rem;
+            padding-left: 2rem;
+            border: 1px solid #30363d;
+            background: #0d1117;
+            color: #c9d1d9;
+            font-size: 0.8rem;
+            font-family: inherit;
+            position: relative;
+        }
+
+        .search-box:focus {
+            outline: none;
+            border-color: #58a6ff;
+            box-shadow: 0 0 0 2px rgba(88, 166, 255, 0.1);
+        }
+
+        .search-box::placeholder {
+            color: #7d8590;
+        }
+
+        .controls::after {
+            content: '🔍';
+            position: absolute;
+            bottom: 1.4rem;
+            left: 1.4rem;
+            color: #7d8590;
+            pointer-events: none;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            grid-template-rows: 1fr 1fr;
+            gap: 1rem;
+            flex: 1;
+            min-height: 0;
+        }
+
+        .section {
+            background: #161b22;
+            border: 1px solid #30363d;
+            display: flex;
+            flex-direction: column;
+            min-height: 0;
+            position: relative;
+            transition: border-color 0.1s ease; /* Faster */
+        }
+
+        .section:hover {
+            border-color: #58a6ff;
+        }
+
+        .section-header {
+            padding: 0.75rem 1rem;
+            border-bottom: 1px solid #30363d;
+            display: flex;
+            align-items: center;
+            flex-shrink: 0;
+            border-left: 3px solid;
+            background: linear-gradient(90deg, rgba(88, 166, 255, 0.1), transparent);
+            position: relative;
+        }
+
+        /* Removed pulse animation for performance */
+        .section-header::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 3px;
+            height: 100%;
+            background: currentColor;
+        }
+
+        .section-header.pinned { 
+            border-left-color: #a5a5f5; 
+            color: #a5a5f5;
+        }
+        .section-header.entertainment { 
+            border-left-color: #ff7b72; 
+            color: #ff7b72;
+        }
+        .section-header.study { 
+            border-left-color: #79c0ff; 
+            color: #79c0ff;
+        }
+        .section-header.progress { 
+            border-left-color: #56d364; 
+            color: #56d364;
+        }
+
+        .section-title {
+            font-size: 1.5rem;
+            font-weight: 900;
+            color: #0080ff;
+        }
+
+        .section-count {
+            margin-left: auto;
+            background: #21262d;
+            border: 1px solid #30363d;
+            padding: 0.2rem 0.5rem;
+            font-size: 0.7rem;
+            color: #c9d1d9;
+            border-radius: 12px;
+            min-width: 24px;
+            text-align: center;
+        }
+
+        .section-icon {
+            margin-right: 0.5rem;
+            font-size: 0.9rem;
+        }
+
+        .section-content {
+            padding: 0.75rem;
+            overflow-y: auto;
+            flex: 1;
+        }
+
+        .links-container {
+            display: grid;
+            gap: 1rem; /* Increased gap */
+            grid-template-columns: repeat(4, 1fr); /* Reduced to 4 columns for wider cards */
+        }
+
+        .pinned .links-container {
+            grid-template-columns: repeat(4, 1fr); /* 4 columns for wider cards */
+            gap: 1rem; /* Increased gap */
+        }
+
+        .entertainment .links-container,
+        .study .links-container,
+        .progress .links-container {
+            grid-template-columns: repeat(4, 1fr); /* Apply 4 columns to all sections */
+            gap: 1rem;
+        }
+
+        .link-card {
+            background: #0d1117;
+            border: 1px solid #21262d;
+            padding: 1rem; /* Increased padding */
+            transition: all 0.1s ease;
+            position: relative;
+            display: flex; 
+            flex-direction: column;
+            min-height: 100px; /* Increased height for better readability */
+            overflow: hidden;
+            border-radius: 4px;
+        }
+
+        .pinned .link-card {
+            padding: 1rem 1.5rem 1rem 2.5rem; /* Increased padding */
+            min-height: 100px; /* Larger height */
+            border-radius: 4px;
+        }
+
+        .link-title {
+            font-size: 1rem; /* Larger font for better readability */
+            font-weight: 600;
+            color: #c9d1d9;
+            margin-bottom: 0.6rem; /* Increased margin */
+            text-shadow: 0 0 3px rgba(201, 209, 217, 0.3);
+            line-height: 1.3;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            padding-right: 2.5rem; /* Increased padding to avoid overlap with delete button */
+            padding-left: 2rem; /* Increased padding for favicon */
+        }
+
+        .pinned .link-title {
+            font-size: 0.9rem; /* Larger font for pinned */
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            line-height: 1.2;
+            max-height: 1.2em;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            padding-right: 2rem; /* Adjust for delete button */
+            padding-left: 0; /* Reset for pinned - favicon positioned differently */
+        }
+
+        .link-url {
+            color: #58a6ff;
+            text-decoration: none;
+            font-size: 0.8rem; /* Larger URL text */
+            word-break: break-all;
+            transition: color 0.1s ease;
+            flex-grow: 1;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            position: relative;
+            line-height: 1.3;
+            padding-left: 2rem; /* Increased padding for favicon */
+        }
+
+        .pinned .link-url {
+            font-size: 0.75rem; /* Larger URL text for pinned */
+            line-height: 1.2;
+            -webkit-line-clamp: 2;
+            line-clamp: 2;
+            opacity: 0.9;
+            padding-left: 0; /* Reset for pinned - favicon positioned differently */
+        }
+
+        .delete-btn {
+            background: #da3633;
+            color: #ffffff;
+            border: 1px solid #f85149;
+            border-radius: 3px;
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            font-weight: bold;
+            transition: all 0.1s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            position: absolute; /* Make all delete buttons absolute */
+            top: 0.5rem; /* Position from top */
+            right: 0.5rem; /* Position from right */
+            z-index: 2; /* Ensure it's above other content */
+        }
+
+        .pinned .delete-btn {
+            width: 18px;
+            height: 18px;
+            font-size: 0.7rem;
+            position: absolute;
+            top: 0.5rem;
+            right: 0.5rem;
+            z-index: 2;
+        }
+
+        .progress-card {
+            min-height: 140px; /* Larger progress cards */
+        }
+
+        /* Favicon styles - slightly larger */
+        .link-favicon {
+            position: absolute;
+            top: 0.75rem; /* Adjusted position */
+            left: 0.75rem;
+            width: 18px; /* Slightly larger */
+            height: 18px;
+            border-radius: 2px;
+            z-index: 1;
+            background: #21262d;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem; /* Larger emoji */
+        }
+
+        .pinned .link-favicon {
+            top: 0.75rem;
+            left: 0.75rem;
+            width: 16px;
+            height: 16px;
+            font-size: 0.7rem;
+        }
+
+        .link-favicon img {
+            width: 100%;
+            height: 100%;
+            border-radius: 2px;
+            object-fit: cover;
+        }
+
+        /* Progress bar and text adjustments */
+        .progress-status {
+            margin-top: auto;
+            padding-top: 0.5rem;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 6px;
+            background: #21262d;
+            border: 1px solid #30363d;
+            border-radius: 3px;
+            margin-bottom: 0.25rem;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #56d364, #46d353);
+            transition: width 0.3s ease; /* Kept for UX */
+            box-shadow: 0 0 10px rgba(86, 211, 100, 0.3);
+            position: relative;
+        }
+
+        .progress-text {
+            font-size: 0.65rem;
+            color: #7d8590;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .progress-input-inline {
+            background: #161b22;
+            border: 1px solid #30363d;
+            color: #c9d1d9;
+            font-size: 0.65rem;
+            font-family: inherit;
+            width: 35px;
+            padding: 0.1rem;
+            text-align: center;
+            border-radius: 2px;
+            transition: border-color 0.1s ease;
+        }
+
+        .progress-input-inline:focus {
+            outline: none;
+            border-color: #58a6ff;
+            box-shadow: 0 0 0 1px rgba(88, 166, 255, 0.2);
+        }
+
+        .empty-section {
+            text-align: center;
+            color: #7d8590;
+            font-size: 0.75rem;
+            padding: 1rem;
+            font-style: italic;
+            border: 1px dashed #30363d;
+            margin: 1rem;
+            border-radius: 4px;
+            background: rgba(88, 166, 255, 0.02);
+        }
+
+        /* Responsive adjustments for 6-column layout */
+        @media (max-width: 1400px) {
+            .links-container {
+                grid-template-columns: repeat(3, 1fr); /* 3 columns on large screens */
+            }
+            
+            .pinned .links-container,
+            .entertainment .links-container,
+            .study .links-container,
+            .progress .links-container {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+
+        @media (max-width: 1200px) {
+            .main-content {
+                grid-template-columns: 1fr;
+                grid-template-rows: auto auto auto auto;
+                gap: 0.75rem;
+            }
+            
+            .section {
+                min-height: 300px; /* Taller sections for wider cards */
+            }
+            
+            .links-container {
+                grid-template-columns: repeat(2, 1fr); /* 2 columns on tablet */
+                gap: 0.8rem;
+            }
+            
+            .pinned .links-container,
+            .entertainment .links-container,
+            .study .links-container,
+            .progress .links-container {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 900px) {
+            .links-container {
+                grid-template-columns: repeat(2, 1fr); /* 2 columns on small tablet */
+            }
+            
+            .pinned .links-container,
+            .entertainment .links-container,
+            .study .links-container,
+            .progress .links-container {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .input-row {
+                grid-template-columns: 1fr;
+                gap: 0.5rem;
+            }
+            
+            body {
+                padding: 0.5rem;
+            }
+            
+            .links-container {
+                grid-template-columns: 1fr; /* Single column on mobile */
+                gap: 0.6rem;
+            }
+            
+            .pinned .links-container,
+            .entertainment .links-container,
+            .study .links-container,
+            .progress .links-container {
+                grid-template-columns: 1fr;
+                gap: 0.6rem;
+            }
+            
+            .link-card {
+                min-height: 80px;
+                padding: 0.8rem;
+            }
+            
+            .pinned .link-card {
+                min-height: 80px;
+                padding: 0.8rem 1.5rem 0.8rem 2rem;
+            }
+            
+            .link-title {
+                font-size: 0.9rem;
+                padding-left: 2rem;
+            }
+            
+            .pinned .link-title {
+                font-size: 0.85rem;
+                padding-left: 0;
+            }
+            
+            .link-url {
+                font-size: 0.7rem;
+                padding-left: 2rem;
+            }
+            
+            .pinned .link-url {
+                font-size: 0.65rem;
+                padding-left: 0;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .links-container {
+                grid-template-columns: 1fr; /* Single column on very small screens */
+            }
+            
+            .pinned .links-container,
+            .entertainment .links-container,
+            .study .links-container,
+            .progress .links-container {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Extra large screens get more columns */
+        @media (min-width: 1800px) {
+            .links-container {
+                grid-template-columns: repeat(5, 1fr); /* 5 columns on extra large screens */
+            }
+            
+            .pinned .links-container,
+            .entertainment .links-container,
+            .study .links-container,
+            .progress .links-container {
+                grid-template-columns: repeat(5, 1fr);
+            }
+        }
+
+        .link-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start; /* Changed from center to flex-start */
+            margin-bottom: 0.5rem;
+            position: relative; /* Add relative positioning */
+        }
+
+        .pinned .link-header {
+            margin-bottom: 0.25rem;
+            align-items: flex-start;
+            position: relative;
+        }
+
+        .delete-btn {
+            background: #da3633;
+            color: #ffffff;
+            border: 1px solid #f85149;
+            border-radius: 3px;
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            font-weight: bold;
+            transition: all 0.1s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            position: absolute; /* Make all delete buttons absolute */
+            top: 0.5rem; /* Position from top */
+            right: 0.5rem; /* Position from right */
+            z-index: 2; /* Ensure it's above other content */
+        }
+
+        .pinned .delete-btn {
+            width: 18px;
+            height: 18px;
+            font-size: 0.7rem;
+            position: absolute;
+            top: 0.5rem;
+            right: 0.5rem;
+            z-index: 2;
+        }
+
+        /* Adjust link titles to make room for delete button */
+        .link-title {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: #c9d1d9;
+            margin-bottom: 0.5rem;
+            text-shadow: 0 0 3px rgba(201, 209, 217, 0.3);
+            line-height: 1.3;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            padding-right: 2rem; /* Add padding to avoid overlap with delete button */
+        }
+
+        .pinned .link-title {
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-bottom: 0.4rem;
+            line-height: 1.2;
+            max-height: 1.2em;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            padding-right: 1.8rem; /* Adjust for smaller button */
+        }
+
+        /* Ensure progress cards also have proper delete button positioning */
+        .progress-card .delete-btn {
+            position: absolute;
+            top: 0.5rem;
+            right: 0.5rem;
+            width: 20px;
+            height: 20px;
+            font-size: 0.8rem;
+            z-index: 2;
+        }
+
+        .progress-card .link-title {
+            padding-right: 2rem; /* Make room for delete button */
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1 id="scrambledHeader" class="scrambled-header">personal-dashboard.exe</h1>
+        </header>
+
+        <div class="controls">
+            <div class="input-row">
+                <input type="text" id="titleInput" class="input-field" placeholder="title">
+                <input type="url" id="urlInput" class="input-field" placeholder="url">
+                <select id="sectionSelect" class="select-field">
+                    <option value="pinned">pinned</option>
+                    <option value="entertainment">entertainment</option>
+                    <option value="study">study</option>
+                    <option value="progress">progress</option>
+                </select>
+                <input type="number" id="progressInput" class="input-field progress-input" placeholder="%" min="0" max="100" style="display: none;">
+                <button onclick="addLink()" class="add-btn">[add]</button>
+            </div>
+            <input type="text" id="searchInput" class="search-box" placeholder="search all links..." onkeyup="searchLinks()">
+        </div>
+
+        <div class="main-content">
+            <!-- Pinned Section -->
+            <div class="section pinned">
+                <div class="section-header pinned">
+                    <span class="section-icon">⭐</span>
+                    <span class="section-title">~/bookmarks</span>
+                    <span class="section-count" id="pinnedCount">0</span>
+                </div>
+                <div class="section-content">
+                    <div id="pinnedContainer" class="links-container"></div>
+                    <div id="pinnedEmpty" class="empty-section">// No bookmarks found</div>
+                </div>
+            </div>
+
+            <!-- Entertainment Section -->
+            <div class="section entertainment">
+                <div class="section-header entertainment">
+                    <span class="section-icon">🕹️</span>
+                    <span class="section-title">/dev/fun</span>
+                    <span class="section-count" id="entertainmentCount">0</span>
+                </div>
+                <div class="section-content">
+                    <div id="entertainmentContainer" class="links-container"></div>
+                    <div id="entertainmentEmpty" class="empty-section">// Directory empty</div>
+                </div>
+            </div>
+
+            <!-- Study Section -->
+            <div class="section study">
+                <div class="section-header study">
+                    <span class="section-icon">📚</span>
+                    <span class="section-title">/usr/learn</span>
+                    <span class="section-count" id="studyCount">0</span>
+                </div>
+                <div class="section-content">
+                    <div id="studyContainer" class="links-container"></div>
+                    <div id="studyEmpty" class="empty-section">// No modules loaded</div>
+                </div>
+            </div>
+
+            <!-- Progress Section -->
+            <div class="section progress">
+                <div class="section-header progress">
+                    <span class="section-icon">⚡</span>
+                    <span class="section-title">./Progress/Learning......</span>
+                    <span class="section-count" id="progressCount">0</span>
+                </div>
+                <div class="section-content">
+                    <div id="progressContainer" class="links-container"></div>
+                    <div id="progressEmpty" class="empty-section">// No processes running</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Scrambled text effect
+        class ScrambledText {
+            constructor(element, options = {}) {
+                this.element = element;
+                this.originalText = element.textContent;
+                this.chars = '.:$#@%&*+=<>[]{}|\\`~';
+                this.radius = options.radius || 100;
+                this.duration = options.duration || 800;
+                this.speed = options.speed || 50;
+                
+                this.splitText();
+                this.bindEvents();
+            }
+            
+            splitText() {
+                this.element.innerHTML = this.originalText
+                    .split('')
+                    .map(char => `<span class="char" data-original="${char}">${char}</span>`)
+                    .join('');
+                    
+                this.charElements = this.element.querySelectorAll('.char');
+            }
+            
+            bindEvents() {
+                this.element.addEventListener('mousemove', (e) => this.handleMouseMove(e));
+            }
+            
+            handleMouseMove(e) {
+                const rect = this.element.getBoundingClientRect();
+                const mouseX = e.clientX;
+                const mouseY = e.clientY;
+                
+                this.charElements.forEach((char, index) => {
+                    const charRect = char.getBoundingClientRect();
+                    const charX = charRect.left + charRect.width / 2;
+                    const charY = charRect.top + charRect.height / 2;
+                    
+                    const distance = Math.sqrt(
+                        Math.pow(mouseX - charX, 2) + Math.pow(mouseY - charY, 2)
+                    );
+                    
+                    if (distance < this.radius) {
+                        this.scrambleChar(char, distance);
+                    }
+                });
+            }
+            
+            scrambleChar(char, distance) {
+                const originalChar = char.dataset.original;
+                const intensity = Math.max(0, 1 - (distance / this.radius));
+                const scrambleTime = this.duration * intensity;
+                
+                if (char.isScrambling) return;
+                char.isScrambling = true;
+                
+                let scrambleCount = 0;
+                const maxScrambles = Math.floor(scrambleTime / this.speed);
+                
+                const scrambleInterval = setInterval(() => {
+                    if (scrambleCount < maxScrambles) {
+                        const randomChar = this.chars[Math.floor(Math.random() * this.chars.length)];
+                        char.textContent = originalChar === ' ' ? ' ' : randomChar;
+                        scrambleCount++;
+                    } else {
+                        char.textContent = originalChar;
+                        char.isScrambling = false;
+                        clearInterval(scrambleInterval);
+                    }
+                }, this.speed);
+            }
+        }
+        
+        // Terminal Command Parser
+        class TerminalCommands {
+            constructor() {
+                this.output = document.getElementById('terminalOutput');
+                this.input = document.getElementById('terminalInput');
+                this.setupEventListeners();
+            }
+
+            setupEventListeners() {
+                this.input.addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') {
+                        this.executeCommand(e.target.value);
+                        e.target.value = '';
+                    }
+                });
+            }
+
+            addOutput(message, type = 'info') {
+                const line = document.createElement('div');
+                line.className = `output-line ${type}`;
+                line.innerHTML = `<span class="prompt">$</span><span>${message}</span>`;
+                this.output.appendChild(line);
+                this.output.scrollTop = this.output.scrollHeight;
+            }
+
+            parseCommand(command) {
+                const parts = command.match(/(?:[^\s"]+|"[^"]*")+/g) || [];
+                const cmd = parts[0];
+                const args = {};
+                
+                for (let i = 1; i < parts.length; i += 2) {
+                    if (parts[i] && parts[i].startsWith('--')) {
+                        const key = parts[i].substring(2);
+                        const value = parts[i + 1] ? parts[i + 1].replace(/"/g, '') : true;
+                        args[key] = value;
+                    }
+                }
+                
+                return { cmd, args };
+            }
+
+            executeCommand(commandStr) {
+                if (!commandStr.trim()) return;
+                
+                this.addOutput(`user@dashboard:~$ ${commandStr}`, 'info');
+                
+                const { cmd, args } = this.parseCommand(commandStr);
+                
+                switch (cmd) {
+                    case 'add':
+                        this.addLink(args);
+                        break;
+                    case 'rm':
+                        this.removeLink(args);
+                        break;
+                    case 'ls':
+                        this.listLinks(args);
+                        break;
+                    case 'clear':
+                        this.clearOutput();
+                        break;
+                    case 'help':
+                        this.showHelp();
+                        break;
+                    default:
+                        this.addOutput(`Command not found: ${cmd}. Type 'help' for available commands.`, 'error');
+                }
+            }
+
+            addLink(args) {
+                const { title, url, section = 'pinned', progress } = args;
+                
+                if (!title || !url) {
+                    this.addOutput('Error: --title and --url are required', 'error');
+                    return;
+                }
+
+                if (!['pinned', 'entertainment', 'study', 'progress'].includes(section)) {
+                    this.addOutput('Error: --section must be one of: pinned, entertainment, study, progress', 'error');
+                    return;
+                }
+
+                let formattedUrl = url;
+                if (!url.startsWith('http://') && !url.startsWith('https://')) {
+                    formattedUrl = 'https://' + url;
+                }
+
+                const newLink = {
+                    id: Date.now(),
+                    title: title.toLowerCase().replace(/\s+/g, '-'),
+                    url: formattedUrl,
+                    section: section,
+                    ...(section === 'progress' && progress && { progress: parseInt(progress) })
+                };
+
+                links[section].unshift(newLink);
+                displayAllSections();
+                
+                this.addOutput(`✓ Added "${title}" to ${section}`, 'success');
+            }
+
+            removeLink(args) {
+                const { title, section } = args;
+                
+                if (!title || !section) {
+                    this.addOutput('Error: --title and --section are required', 'error');
+                    return;
+                }
+
+                const linkIndex = links[section].findIndex(link => 
+                    link.title.toLowerCase() === title.toLowerCase()
+                );
+
+                if (linkIndex === -1) {
+                    this.addOutput(`Error: Link "${title}" not found in ${section}`, 'error');
+                    return;
+                }
+
+                links[section].splice(linkIndex, 1);
+                displayAllSections();
+                
+                this.addOutput(`✓ Removed "${title}" from ${section}`, 'success');
+            }
+
+            listLinks(args) {
+                const { section } = args;
+                
+                if (section) {
+                    if (!links[section]) {
+                        this.addOutput(`Error: Section "${section}" not found`, 'error');
+                        return;
+                    }
+                    
+                    this.addOutput(`Links in ${section}:`, 'info');
+                    if (links[section].length === 0) {
+                        this.addOutput(`  (empty)`, 'warning');
+                    } else {
+                        links[section].forEach(link => {
+                            const progressText = link.progress ? ` [${link.progress}%]` : '';
+                            this.addOutput(`  • ${link.title} - ${link.url}${progressText}`, 'info');
+                        });
+                    }
+                } else {
+                    this.addOutput('All sections:', 'info');
+                    Object.keys(links).forEach(sectionName => {
+                        this.addOutput(`  ${sectionName}: ${links[sectionName].length} links`, 'info');
+                    });
+                }
+            }
+
+            clearOutput() {
+                this.output.innerHTML = `
+                    <div class="output-line info">
+                        <span class="prompt">$</span>
+                        <span>Terminal cleared</span>
+                    </div>
+                `;
+            }
+
+            showHelp() {
+                this.addOutput('Commands:', 'info');
+                this.addOutput('  add --title "name" --url "site.com" --section pinned', 'info');
+                this.addOutput('  rm --title "name" --section pinned', 'info');
+                this.addOutput('  ls [--section pinned]', 'info');
+                this.addOutput('  clear', 'info');
+                this.addOutput('', 'info');
+                this.addOutput('Examples:', 'info');
+                this.addOutput('  add --title "github" --url "github.com" --section pinned', 'success');
+                this.addOutput('  add --title "portfolio" --url "mysite.com" --section progress --progress 75', 'success');
+            }
+        }
+        
+        // Initialize everything after DOM loads
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize scrambled text effect
+            const headerElement = document.getElementById('scrambledHeader');
+            if (headerElement) {
+                new ScrambledText(headerElement, {
+                    radius: 80,
+                    duration: 600,
+                    speed: 40
+                });
+            }
+
+            // Initialize data
+            let links = {
+                pinned: [],
+                entertainment: [],
+                study: [],
+                progress: []
+            };
+            let searchTerm = '';
+
+            function loadLinks() {
+                // Sample data
+                if (Object.values(links).every(arr => arr.length === 0)) {
+                    links = {
+                        pinned: [
+                            { id: 1, title: 'github', url: 'https://github.com', section: 'pinned' },
+                            { id: 2, title: 'gmail', url: 'https://gmail.com', section: 'pinned' },
+                            { id: 3, title: 'notion', url: 'https://notion.so', section: 'pinned' },
+                            { id: 4, title: 'discord', url: 'https://discord.com', section: 'pinned' }
+                        ],
+                        entertainment: [
+                            { id: 5, title: 'youtube', url: 'https://youtube.com', section: 'entertainment' },
+                            { id: 6, title: 'reddit', url: 'https://reddit.com', section: 'entertainment' },
+                            { id: 7, title: 'netflix', url: 'https://netflix.com', section: 'entertainment' }
+                        ],
+                        study: [
+                            { id: 8, title: 'khan-academy', url: 'https://khanacademy.org', section: 'study' },
+                            { id: 9, title: 'coursera', url: 'https://coursera.org', section: 'study' },
+                            { id: 10, title: 'mdn-docs', url: 'https://developer.mozilla.org', section: 'study' }
+                        ],
+                        progress: [
+                            { id: 11, title: 'react-bootcamp', url: 'https://reactjs.org/tutorial', section: 'progress', progress: 78 },
+                            { id: 12, title: 'portfolio-site', url: 'https://github.com/user/portfolio', section: 'progress', progress: 45 },
+                            { id: 13, title: 'js-algorithms', url: 'https://leetcode.com', section: 'progress', progress: 62 }
+                        ]
+                    };
+                }
+                displayAllSections();
+            }
+
+            function showProgressInput() {
+                const section = document.getElementById('sectionSelect').value;
+                const progressInput = document.getElementById('progressInput');
+                progressInput.style.display = section === 'progress' ? 'block' : 'none';
+            }
+
+            function addLink() {
+                const title = document.getElementById('titleInput').value.trim().toLowerCase().replace(/\s+/g, '-');
+                const url = document.getElementById('urlInput').value.trim();
+                const section = document.getElementById('sectionSelect').value;
+                const progress = document.getElementById('progressInput').value || 0;
+                
+                if (!title || !url) {
+                    alert('please fill in both title and url');
+                    return;
+                }
+
+                let formattedUrl = url;
+                if (!url.startsWith('http://') && !url.startsWith('https://')) {
+                    formattedUrl = 'https://' + url;
+                }
+
+                const newLink = {
+                    id: Date.now(),
+                    title: title,
+                    url: formattedUrl,
+                    section: section,
+                    ...(section === 'progress' && { progress: parseInt(progress) })
+                };
+
+                links[section].unshift(newLink);
+                
+                // Clear inputs
+                document.getElementById('titleInput').value = '';
+                document.getElementById('urlInput').value = '';
+                document.getElementById('progressInput').value = '';
+                document.getElementById('sectionSelect').value = 'pinned';
+                showProgressInput();
+                
+                displayAllSections();
+            }
+
+            function deleteLink(section, id) {
+                if (confirm('delete this link?')) {
+                    links[section] = links[section].filter(link => link.id !== id);
+                    displayAllSections();
+                }
+            }
+
+            function updateProgress(section, id, newProgress) {
+                const link = links[section].find(l => l.id === id);
+                if (link) {
+                    link.progress = Math.max(0, Math.min(100, parseInt(newProgress) || 0));
+                    displayAllSections();
+                }
+            }
+
+            function searchLinks() {
+                searchTerm = document.getElementById('searchInput').value.toLowerCase();
+                displayAllSections();
+            }
+
+            function displaySection(sectionName, container, emptyElement) {
+                const sectionLinks = links[sectionName];
+                const filteredLinks = searchTerm ? 
+                    sectionLinks.filter(link => 
+                        link.title.toLowerCase().includes(searchTerm) ||
+                        link.url.toLowerCase().includes(searchTerm)
+                    ) : sectionLinks;
+
+                // Update count
+                document.getElementById(`${sectionName}Count`).textContent = filteredLinks.length;
+
+                if (filteredLinks.length === 0) {
+                    container.innerHTML = '';
+                    emptyElement.style.display = 'block';
+                    return;
+                }
+
+                emptyElement.style.display = 'none';
+                container.innerHTML = filteredLinks.map(link => {
+                    // Extract site name for icon
+                    const siteName = link.title.toLowerCase().replace(/[^a-z]/g, '');
+                    
+                    if (sectionName === 'progress') {
+                        return `
+                            <div class="link-card progress-card fade-in">
+                                <div class="link-header">
+                                    <div class="link-title">${link.title}</div>
+                                    <button class="delete-btn" onclick="deleteLink('${sectionName}', ${link.id})">×</button>
+                                </div>
+                                <a href="${link.url}" target="_blank" class="link-url">${link.url}</a>
+                                <div class="progress-status">
+                                    <div class="progress-bar">
+                                        <div class="progress-fill" style="width: ${link.progress}%"></div>
+                                    </div>
+                                    <div class="progress-text">
+                                        <span>${link.progress}% complete</span>
+                                        <input type="number" value="${link.progress}" min="0" max="100" 
+                                               class="progress-input-inline"
+                                               onchange="updateProgress('${sectionName}', ${link.id}, this.value)">
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    } else {
+                        return `
+                            <div class="link-card fade-in" data-site="${siteName}">
+                                <div class="link-header">
+                                    <div class="link-title">${link.title}</div>
+                                    <button class="delete-btn" onclick="deleteLink('${sectionName}', ${link.id})">×</button>
+                                </div>
+                                <a href="${link.url}" target="_blank" class="link-url">${link.url}</a>
+                            </div>
+                        `;
+                    }
+                }).join('');
+            }
+
+            function displayAllSections() {
+                displaySection('pinned', document.getElementById('pinnedContainer'), document.getElementById('pinnedEmpty'));
+                displaySection('entertainment', document.getElementById('entertainmentContainer'), document.getElementById('entertainmentEmpty'));
+                displaySection('study', document.getElementById('studyContainer'), document.getElementById('studyEmpty'));
+                displaySection('progress', document.getElementById('progressContainer'), document.getElementById('progressEmpty'));
+            }
+
+            // Event listeners
+            document.getElementById('sectionSelect').addEventListener('change', showProgressInput);
+            
+            document.getElementById('titleInput').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    document.getElementById('urlInput').focus();
+                }
+            });
+            
+            document.getElementById('urlInput').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    addLink();
+                }
+            });
+            
+            // Make functions global for onclick handlers
+            window.addLink = addLink;
+            window.deleteLink = deleteLink;
+            window.updateProgress = updateProgress;
+            window.searchLinks = searchLinks;
+            
+            loadLinks();
+        });
+
+        document.addEventListener('keydown', function(e) {
+            if (e.ctrlKey && e.key === '/') {
+                e.preventDefault();
+                document.getElementById('searchInput').focus();
+            }
+        });
+    </script>
+</body>
+</html>

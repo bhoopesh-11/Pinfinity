@@ -1,0 +1,63 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'JetBrains Mono', 'Fira Code', 'SF Mono', Monaco, 'Cascadia Code', monospace;
+  background: #0d1117;
+  background-image: 
+    radial-gradient(circle at 20% 80%, rgba(120, 119, 198, 0.05) 0%, transparent 50%),
+    radial-gradient(circle at 80% 20%, rgba(255, 125, 125, 0.05) 0%, transparent 50%),
+    radial-gradient(circle at 40% 40%, rgba(120, 255, 120, 0.03) 0%, transparent 50%);
+  height: 100vh;
+  color: #c9d1d9;
+  line-height: 1.4;
+  overflow-x: hidden;
+  position: relative;
+}
+
+body::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: 
+    linear-gradient(90deg, transparent 79px, rgba(0, 255, 0, 0.03) 81px, transparent 82px),
+    linear-gradient(rgba(0, 255, 0, 0.01) 50%, transparent 50%);
+  background-size: 82px 4px, 100% 4px;
+  pointer-events: none;
+  z-index: -1;
+}
+
+#root {
+  min-height: 100vh;
+  padding: 1rem;
+}
+
+/* Reduce animation durations and disable non-essential animations */
+*, *::before, *::after {
+  animation-duration: 0.2s !important;
+  animation-delay: 0s !important;
+  transition-duration: 0.2s !important;
+  transition-delay: 0s !important;
+}
+
+/* Disable animations for users who prefer reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Remove heavy transform animations */
+.fade-in, .slide-in, .bounce {
+  animation: none !important;
+  opacity: 1 !important;
+  transform: none !important;
+}

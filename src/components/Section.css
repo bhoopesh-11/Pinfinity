@@ -1,0 +1,157 @@
+.section {
+  background: #161b22;
+  border: 1px solid #30363d;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  position: relative;
+  transition: all 0.3s ease;
+}
+
+.section:hover {
+  border-color: #58a6ff;
+}
+
+.section-header {
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid #30363d;
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  border-left: 3px solid;
+  background: linear-gradient(90deg, rgba(88, 166, 255, 0.1), transparent);
+  position: relative;
+}
+
+.section-header::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 3px;
+  height: 100%;
+  background: currentColor;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+.section-header.pinned { 
+  border-left-color: #a5a5f5; 
+  color: #a5a5f5;
+}
+.section-header.entertainment { 
+  border-left-color: #ff7b72; 
+  color: #ff7b72;
+}
+.section-header.study { 
+  border-left-color: #79c0ff; 
+  color: #79c0ff;
+}
+.section-header.progress { 
+  border-left-color: #56d364; 
+  color: #56d364;
+}
+
+.section-title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #c9d1d9;
+  text-shadow: 0 0 5px currentColor;
+  overflow: hidden;
+  white-space: nowrap;
+  animation: typing 1.5s steps(20, end);
+}
+
+@keyframes typing {
+  from { width: 0; }
+  to { width: 100%; }
+}
+
+.section-count {
+  margin-left: auto;
+  background: #21262d;
+  border: 1px solid #30363d;
+  padding: 0.2rem 0.5rem;
+  font-size: 0.7rem;
+  color: #c9d1d9;
+  border-radius: 12px;
+  min-width: 24px;
+  text-align: center;
+}
+
+.section-icon {
+  margin-right: 0.5rem;
+  font-size: 0.9rem;
+}
+
+.section-content {
+  padding: 0.75rem;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.links-container {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.pinned .links-container {
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+}
+
+.entertainment .links-container,
+.study .links-container {
+  grid-template-columns: 1fr;
+}
+
+.progress .links-container {
+  grid-template-columns: 1fr;
+}
+
+.empty-section {
+  text-align: center;
+  color: #7d8590;
+  font-size: 0.75rem;
+  padding: 1rem;
+  font-style: italic;
+  border: 1px dashed #30363d;
+  margin: 1rem;
+  border-radius: 4px;
+  background: rgba(88, 166, 255, 0.02);
+}
+
+/* Custom scrollbar */
+.section-content::-webkit-scrollbar {
+  width: 6px;
+}
+
+.section-content::-webkit-scrollbar-track {
+  background: #21262d;
+}
+
+.section-content::-webkit-scrollbar-thumb {
+  background: #30363d;
+  border-radius: 3px;
+  border: 1px solid #21262d;
+}
+
+.section-content::-webkit-scrollbar-thumb:hover {
+  background: #484f58;
+}
+
+/* Responsive adjustments */
+@media (max-width: 1200px) {
+  .section {
+    min-height: 200px;
+  }
+}
+
+@media (max-width: 768px) {
+  .pinned .links-container {
+    grid-template-columns: 1fr 1fr;
+  }
+}

@@ -886,177 +886,149 @@
                 }, this.speed);
             }
         }
-        
-        // Terminal Command Parser
-        class TerminalCommands {
-            constructor() {
-                this.output = document.getElementById('terminalOutput');
-                this.input = document.getElementById('terminalInput');
-                this.setupEventListeners();
+
+        // Favicon fetching utility
+        function getFaviconUrl(url) {
+            try {
+                const domain = new URL(url).hostname;
+                return `https://www.google.com/s2/favicons?domain=${domain}&sz=16`;
+            } catch (e) {
+                return null;
             }
+        }
 
-            setupEventListeners() {
-                this.input.addEventListener('keypress', (e) => {
-                    if (e.key === 'Enter') {
-                        this.executeCommand(e.target.value);
-                        e.target.value = '';
-                    }
-                });
-            }
-
-            addOutput(message, type = 'info') {
-                const line = document.createElement('div');
-                line.className = `output-line ${type}`;
-                line.innerHTML = `<span class="prompt">$</span><span>${message}</span>`;
-                this.output.appendChild(line);
-                this.output.scrollTop = this.output.scrollHeight;
-            }
-
-            parseCommand(command) {
-                const parts = command.match(/(?:[^\s"]+|"[^"]*")+/g) || [];
-                const cmd = parts[0];
-                const args = {};
+        function getDefaultIcon(url) {
+            try {
+                const domain = new URL(url).hostname.toLowerCase();
                 
-                for (let i = 1; i < parts.length; i += 2) {
-                    if (parts[i] && parts[i].startsWith('--')) {
-                        const key = parts[i].substring(2);
-                        const value = parts[i + 1] ? parts[i + 1].replace(/"/g, '') : true;
-                        args[key] = value;
-                    }
-                }
-                
-                return { cmd, args };
-            }
-
-            executeCommand(commandStr) {
-                if (!commandStr.trim()) return;
-                
-                this.addOutput(`user@dashboard:~$ ${commandStr}`, 'info');
-                
-                const { cmd, args } = this.parseCommand(commandStr);
-                
-                switch (cmd) {
-                    case 'add':
-                        this.addLink(args);
-                        break;
-                    case 'rm':
-                        this.removeLink(args);
-                        break;
-                    case 'ls':
-                        this.listLinks(args);
-                        break;
-                    case 'clear':
-                        this.clearOutput();
-                        break;
-                    case 'help':
-                        this.showHelp();
-                        break;
-                    default:
-                        this.addOutput(`Command not found: ${cmd}. Type 'help' for available commands.`, 'error');
-                }
-            }
-
-            addLink(args) {
-                const { title, url, section = 'pinned', progress } = args;
-                
-                if (!title || !url) {
-                    this.addOutput('Error: --title and --url are required', 'error');
-                    return;
-                }
-
-                if (!['pinned', 'entertainment', 'study', 'progress'].includes(section)) {
-                    this.addOutput('Error: --section must be one of: pinned, entertainment, study, progress', 'error');
-                    return;
-                }
-
-                let formattedUrl = url;
-                if (!url.startsWith('http://') && !url.startsWith('https://')) {
-                    formattedUrl = 'https://' + url;
-                }
-
-                const newLink = {
-                    id: Date.now(),
-                    title: title.toLowerCase().replace(/\s+/g, '-'),
-                    url: formattedUrl,
-                    section: section,
-                    ...(section === 'progress' && progress && { progress: parseInt(progress) })
+                const iconMap = {
+                    'github.com': '🐙',
+                    'gmail.com': '📧',
+                    'google.com': '🔍',
+                    'youtube.com': '📺',
+                    'reddit.com': '🤖',
+                    'discord.com': '💬',
+                    'notion.so': '📝',
+                    'netflix.com': '🎬',
+                    'amazon.com': '📦',
+                    'twitter.com': '🐦',
+                    'facebook.com': '👥',
+                    'instagram.com': '📸',
+                    'linkedin.com': '💼',
+                    'stackoverflow.com': '❓',
+                    'medium.com': '📖',
+                    'spotify.com': '🎵',
+                    'twitch.tv': '🎮',
+                    'coursera.org': '🎓',
+                    'khanacademy.org': '📚',
+                    'developer.mozilla.org': '🌐'
                 };
+                
+                return iconMap[domain] || '🌐';
+            } catch (e) {
+                return '🌐';
+            }
+        }
 
-                links[section].unshift(newLink);
+        // Data persistence functions
+        function saveToLocalStorage(links) {
+            try {
+                localStorage.setItem('dashboardLinks', JSON.stringify(links));
+                console.log('✓ Data saved to localStorage');
+            } catch (e) {
+                console.error('Failed to save to localStorage:', e);
+            }
+        }
+
+        function loadFromLocalStorage() {
+            try {
+                const saved = localStorage.getItem('dashboardLinks');
+                if (saved) {
+                    const parsed = JSON.parse(saved);
+                    console.log('✓ Data loaded from localStorage');
+                    return parsed;
+                }
+            } catch (e) {
+                console.error('Failed to load from localStorage:', e);
+            }
+            return null;
+        }
+
+        function getDefaultData() {
+            return {
+                pinned: [
+                    { id: 1, title: 'github', url: 'https://github.com', section: 'pinned' },
+                    { id: 2, title: 'gmail', url: 'https://gmail.com', section: 'pinned' },
+                    { id: 3, title: 'notion', url: 'https://notion.so', section: 'pinned' },
+                    { id: 4, title: 'discord', url: 'https://discord.com', section: 'pinned' }
+                ],
+                entertainment: [
+                    { id: 5, title: 'youtube', url: 'https://youtube.com', section: 'entertainment' },
+                    { id: 6, title: 'reddit', url: 'https://reddit.com', section: 'entertainment' },
+                    { id: 7, title: 'netflix', url: 'https://netflix.com', section: 'entertainment' }
+                ],
+                study: [
+                    { id: 8, title: 'khan-academy', url: 'https://khanacademy.org', section: 'study' },
+                    { id: 9, title: 'coursera', url: 'https://coursera.org', section: 'study' },
+                    { id: 10, title: 'mdn-docs', url: 'https://developer.mozilla.org', section: 'study' }
+                ],
+                progress: [
+                    { id: 11, title: 'react-bootcamp', url: 'https://reactjs.org/tutorial', section: 'progress', progress: 78 },
+                    { id: 12, title: 'portfolio-site', url: 'https://github.com/user/portfolio', section: 'progress', progress: 45 },
+                    { id: 13, title: 'js-algorithms', url: 'https://leetcode.com', section: 'progress', progress: 62 }
+                ]
+            };
+        }
+
+        function resetToDefaults() {
+            if (confirm('Reset to default bookmarks? This will delete all your custom bookmarks.')) {
+                const defaultData = getDefaultData();
+                saveToLocalStorage(defaultData);
+                window.links = defaultData;
                 displayAllSections();
-                
-                this.addOutput(`✓ Added "${title}" to ${section}`, 'success');
+                console.log('✓ Reset to default data');
             }
+        }
 
-            removeLink(args) {
-                const { title, section } = args;
-                
-                if (!title || !section) {
-                    this.addOutput('Error: --title and --section are required', 'error');
-                    return;
+        function exportData() {
+            const dataStr = JSON.stringify(window.links, null, 2);
+            const dataBlob = new Blob([dataStr], {type: 'application/json'});
+            const url = URL.createObjectURL(dataBlob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = 'dashboard-bookmarks.json';
+            link.click();
+            URL.revokeObjectURL(url);
+            console.log('✓ Data exported');
+        }
+
+        function importData() {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = '.json';
+            input.onchange = function(e) {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        try {
+                            const imported = JSON.parse(e.target.result);
+                            if (imported && typeof imported === 'object') {
+                                window.links = imported;
+                                saveToLocalStorage(imported);
+                                displayAllSections();
+                                alert('✓ Data imported successfully!');
+                            } else {
+                                alert('❌ Invalid file format');
+                            }
+                        } catch (err) {
+                            alert('❌ Error reading file: ' + err.message);
+                        }
+                    };
+                    reader.readAsText(file);
                 }
-
-                const linkIndex = links[section].findIndex(link => 
-                    link.title.toLowerCase() === title.toLowerCase()
-                );
-
-                if (linkIndex === -1) {
-                    this.addOutput(`Error: Link "${title}" not found in ${section}`, 'error');
-                    return;
-                }
-
-                links[section].splice(linkIndex, 1);
-                displayAllSections();
-                
-                this.addOutput(`✓ Removed "${title}" from ${section}`, 'success');
-            }
-
-            listLinks(args) {
-                const { section } = args;
-                
-                if (section) {
-                    if (!links[section]) {
-                        this.addOutput(`Error: Section "${section}" not found`, 'error');
-                        return;
-                    }
-                    
-                    this.addOutput(`Links in ${section}:`, 'info');
-                    if (links[section].length === 0) {
-                        this.addOutput(`  (empty)`, 'warning');
-                    } else {
-                        links[section].forEach(link => {
-                            const progressText = link.progress ? ` [${link.progress}%]` : '';
-                            this.addOutput(`  • ${link.title} - ${link.url}${progressText}`, 'info');
-                        });
-                    }
-                } else {
-                    this.addOutput('All sections:', 'info');
-                    Object.keys(links).forEach(sectionName => {
-                        this.addOutput(`  ${sectionName}: ${links[sectionName].length} links`, 'info');
-                    });
-                }
-            }
-
-            clearOutput() {
-                this.output.innerHTML = `
-                    <div class="output-line info">
-                        <span class="prompt">$</span>
-                        <span>Terminal cleared</span>
-                    </div>
-                `;
-            }
-
-            showHelp() {
-                this.addOutput('Commands:', 'info');
-                this.addOutput('  add --title "name" --url "site.com" --section pinned', 'info');
-                this.addOutput('  rm --title "name" --section pinned', 'info');
-                this.addOutput('  ls [--section pinned]', 'info');
-                this.addOutput('  clear', 'info');
-                this.addOutput('', 'info');
-                this.addOutput('Examples:', 'info');
-                this.addOutput('  add --title "github" --url "github.com" --section pinned', 'success');
-                this.addOutput('  add --title "portfolio" --url "mysite.com" --section progress --progress 75', 'success');
-            }
+            };
+            input.click();
         }
         
         // Initialize everything after DOM loads
@@ -1071,42 +1043,15 @@
                 });
             }
 
-            // Initialize data
-            let links = {
-                pinned: [],
-                entertainment: [],
-                study: [],
-                progress: []
-            };
+            // Initialize data with persistence
+            let links = loadFromLocalStorage() || getDefaultData();
+            
+            // Make links globally accessible
+            window.links = links;
+
             let searchTerm = '';
 
             function loadLinks() {
-                // Sample data
-                if (Object.values(links).every(arr => arr.length === 0)) {
-                    links = {
-                        pinned: [
-                            { id: 1, title: 'github', url: 'https://github.com', section: 'pinned' },
-                            { id: 2, title: 'gmail', url: 'https://gmail.com', section: 'pinned' },
-                            { id: 3, title: 'notion', url: 'https://notion.so', section: 'pinned' },
-                            { id: 4, title: 'discord', url: 'https://discord.com', section: 'pinned' }
-                        ],
-                        entertainment: [
-                            { id: 5, title: 'youtube', url: 'https://youtube.com', section: 'entertainment' },
-                            { id: 6, title: 'reddit', url: 'https://reddit.com', section: 'entertainment' },
-                            { id: 7, title: 'netflix', url: 'https://netflix.com', section: 'entertainment' }
-                        ],
-                        study: [
-                            { id: 8, title: 'khan-academy', url: 'https://khanacademy.org', section: 'study' },
-                            { id: 9, title: 'coursera', url: 'https://coursera.org', section: 'study' },
-                            { id: 10, title: 'mdn-docs', url: 'https://developer.mozilla.org', section: 'study' }
-                        ],
-                        progress: [
-                            { id: 11, title: 'react-bootcamp', url: 'https://reactjs.org/tutorial', section: 'progress', progress: 78 },
-                            { id: 12, title: 'portfolio-site', url: 'https://github.com/user/portfolio', section: 'progress', progress: 45 },
-                            { id: 13, title: 'js-algorithms', url: 'https://leetcode.com', section: 'progress', progress: 62 }
-                        ]
-                    };
-                }
                 displayAllSections();
             }
 
@@ -1142,6 +1087,9 @@
 
                 links[section].unshift(newLink);
                 
+                // Save to localStorage after adding
+                saveToLocalStorage(links);
+                
                 // Clear inputs
                 document.getElementById('titleInput').value = '';
                 document.getElementById('urlInput').value = '';
@@ -1155,6 +1103,10 @@
             function deleteLink(section, id) {
                 if (confirm('delete this link?')) {
                     links[section] = links[section].filter(link => link.id !== id);
+                    
+                    // Save to localStorage after deleting
+                    saveToLocalStorage(links);
+                    
                     displayAllSections();
                 }
             }
@@ -1163,6 +1115,10 @@
                 const link = links[section].find(l => l.id === id);
                 if (link) {
                     link.progress = Math.max(0, Math.min(100, parseInt(newProgress) || 0));
+                    
+                    // Save to localStorage after updating
+                    saveToLocalStorage(links);
+                    
                     displayAllSections();
                 }
             }
@@ -1191,12 +1147,12 @@
 
                 emptyElement.style.display = 'none';
                 container.innerHTML = filteredLinks.map(link => {
-                    // Extract site name for icon
-                    const siteName = link.title.toLowerCase().replace(/[^a-z]/g, '');
+                    const faviconHtml = `<div class="link-favicon"></div>`;
                     
                     if (sectionName === 'progress') {
                         return `
-                            <div class="link-card progress-card fade-in">
+                            <div class="link-card progress-card fade-in" data-url="${link.url}">
+                                ${faviconHtml}
                                 <div class="link-header">
                                     <div class="link-title">${link.title}</div>
                                     <button class="delete-btn" onclick="deleteLink('${sectionName}', ${link.id})">×</button>
@@ -1217,7 +1173,8 @@
                         `;
                     } else {
                         return `
-                            <div class="link-card fade-in" data-site="${siteName}">
+                            <div class="link-card fade-in" data-url="${link.url}">
+                                ${faviconHtml}
                                 <div class="link-header">
                                     <div class="link-title">${link.title}</div>
                                     <button class="delete-btn" onclick="deleteLink('${sectionName}', ${link.id})">×</button>
@@ -1227,6 +1184,34 @@
                         `;
                     }
                 }).join('');
+
+                // Add favicons after HTML is rendered
+                setTimeout(() => {
+                    container.querySelectorAll('.link-card').forEach(card => {
+                        const url = card.dataset.url;
+                        const faviconContainer = card.querySelector('.link-favicon');
+                        if (faviconContainer && url) {
+                            const faviconUrl = getFaviconUrl(url);
+                            
+                            if (faviconUrl) {
+                                const img = document.createElement('img');
+                                img.src = faviconUrl;
+                                img.alt = 'favicon';
+                                
+                                img.onload = function() {
+                                    faviconContainer.innerHTML = '';
+                                    faviconContainer.appendChild(img);
+                                };
+                                
+                                img.onerror = function() {
+                                    faviconContainer.innerHTML = getDefaultIcon(url);
+                                };
+                            } else {
+                                faviconContainer.innerHTML = getDefaultIcon(url);
+                            }
+                        }
+                    });
+                }, 100);
             }
 
             function displayAllSections() {
@@ -1256,14 +1241,36 @@
             window.deleteLink = deleteLink;
             window.updateProgress = updateProgress;
             window.searchLinks = searchLinks;
+            window.resetToDefaults = resetToDefaults;
+            window.exportData = exportData;
+            window.importData = importData;
             
             loadLinks();
         });
 
+        // Keyboard shortcuts
         document.addEventListener('keydown', function(e) {
             if (e.ctrlKey && e.key === '/') {
                 e.preventDefault();
                 document.getElementById('searchInput').focus();
+            }
+            
+            // Export data: Ctrl + E
+            if (e.ctrlKey && e.key === 'e') {
+                e.preventDefault();
+                exportData();
+            }
+            
+            // Import data: Ctrl + I
+            if (e.ctrlKey && e.key === 'i') {
+                e.preventDefault();
+                importData();
+            }
+            
+            // Reset to defaults: Ctrl + R
+            if (e.ctrlKey && e.key === 'r' && e.shiftKey) {
+                e.preventDefault();
+                resetToDefaults();
             }
         });
     </script>
